@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // добавил для стрелок ноутбука
+
+// Я сделал змейку для проекта по flutter
+// Студент Альғани, ЖИХЦ Тараз, 2026 год
 
 void main() {
   runApp(SnakeTarazApp());
@@ -65,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
               Text(
-                'ЖИХЦ Тараз 🇰🇿',
+                'JIHC Тараз 🇰🇿',
                 style: TextStyle(fontSize: 18, color: Colors.white70),
               ),
               SizedBox(height: 30),
@@ -143,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                     TextButton(
                       onPressed: () {},
-                      child: Text('Регистрация (потом сделаю)'),
+                      child: Text('Регистрация (позже)'),
                     ),
                   ],
                 ),
@@ -160,7 +164,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Змейка Тараза - ЖИХЦ')),
+      appBar: AppBar(title: Text('Змейка Тараза - JIHC')),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [Colors.green, Colors.blue[900]!]),
@@ -170,7 +174,7 @@ class HomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Привет, Альғани!',
+                'Привет, Игрок!',
                 style: TextStyle(fontSize: 30, color: Colors.white),
               ),
               SizedBox(height: 40),
@@ -180,7 +184,7 @@ class HomeScreen extends StatelessWidget {
               SizedBox(height: 15),
               menuBtn(context, 'ПРОФИЛЬ', '/profile'),
               SizedBox(height: 15),
-              menuBtn(context, 'ПРО ЖИХЦ', '/about'),
+              menuBtn(context, 'ПРО JIHC', '/about'),
             ],
           ),
         ),
@@ -211,6 +215,9 @@ class _GameScreenState extends State<GameScreen> {
   Timer? timer;
 
   int grid = 20;
+
+  // добавил для стрелок ноутбука
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -266,7 +273,7 @@ class _GameScreenState extends State<GameScreen> {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: Text('ИГРА ЗАКОНЧИЛАСЬ'),
-        content: Text('Твой счёт: $score\n\nМолодец студент ЖИХЦ!'),
+        content: Text('Твой счёт: $score\n\nМолодец студент JIHC!'),
         actions: [
           TextButton(onPressed: restart, child: Text('ЕЩЁ РАЗ')),
           TextButton(
@@ -301,40 +308,59 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Играем | Счёт: $score')),
-      body: GestureDetector(
-        onVerticalDragUpdate: (d) {
-          if (d.delta.dy > 15) changeDir(Offset(0, 1));
-          if (d.delta.dy < -15) changeDir(Offset(0, -1));
+      body: RawKeyboardListener(
+        // ← управление стрелками ноутбука
+        focusNode: _focusNode,
+        autofocus: true,
+        onKey: (RawKeyEvent event) {
+          if (event is RawKeyDownEvent && !isGameOver) {
+            if (event.logicalKey == LogicalKeyboardKey.arrowUp)
+              changeDir(Offset(0, -1));
+            if (event.logicalKey == LogicalKeyboardKey.arrowDown)
+              changeDir(Offset(0, 1));
+            if (event.logicalKey == LogicalKeyboardKey.arrowLeft)
+              changeDir(Offset(-1, 0));
+            if (event.logicalKey == LogicalKeyboardKey.arrowRight)
+              changeDir(Offset(1, 0));
+          }
         },
-        onHorizontalDragUpdate: (d) {
-          if (d.delta.dx > 15) changeDir(Offset(1, 0));
-          if (d.delta.dx < -15) changeDir(Offset(-1, 0));
-        },
-        child: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: Container(
-                  width: 380,
-                  height: 380,
-                  decoration: BoxDecoration(
-                    color: Colors.lightGreen[100],
-                    border: Border.all(color: Colors.yellow, width: 10),
+        child: GestureDetector(
+          onVerticalDragUpdate: (d) {
+            if (d.delta.dy > 15) changeDir(Offset(0, 1));
+            if (d.delta.dy < -15) changeDir(Offset(0, -1));
+          },
+          onHorizontalDragUpdate: (d) {
+            if (d.delta.dx > 15) changeDir(Offset(1, 0));
+            if (d.delta.dx < -15) changeDir(Offset(-1, 0));
+          },
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Container(
+                    width: 380,
+                    height: 380,
+                    decoration: BoxDecoration(
+                      color: Colors.lightGreen[100],
+                      border: Border.all(color: Colors.yellow, width: 10),
+                    ),
+                    child: CustomPaint(
+                      painter: SnakePainter(snake, food, grid),
+                    ),
                   ),
-                  child: CustomPaint(painter: SnakePainter(snake, food, grid)),
                 ),
               ),
-            ),
-            Container(
-              color: Colors.blue[900],
-              padding: EdgeInsets.all(15),
-              child: Text(
-                'Свайпай пальцем!\nЕшь дыни из Тараза 🐍',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 17),
+              Container(
+                color: Colors.blue[900],
+                padding: EdgeInsets.all(15),
+                child: Text(
+                  'Свайпай пальцем ИЛИ стрелки ← ↑ ↓ → на клавиатуре\nЕшь дыни из Тараза 🐍',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 17),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -342,6 +368,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   void dispose() {
+    _focusNode.dispose(); // обязательно чистим
     timer?.cancel();
     super.dispose();
   }
@@ -387,12 +414,12 @@ class ScoresScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Рекорды студентов ЖИХЦ')),
+      appBar: AppBar(title: Text('Рекорды студентов JIHC')),
       body: ListView.builder(
         itemCount: top.length,
         itemBuilder: (c, i) => ListTile(
           leading: Text('${i + 1}'),
-          title: Text(i == 0 ? 'ТЫ (Альғани)' : 'Студент ${i + 1}'),
+          title: Text(i == 0 ? 'ТЫ' : 'Студент ${i + 1}'),
           trailing: Text('${top[i]}'),
         ),
       ),
@@ -438,7 +465,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Про ЖИХЦ и Тараз')),
+      appBar: AppBar(title: Text('Про JIHC и Тараз')),
       body: Padding(
         padding: EdgeInsets.all(20),
         child: Column(
